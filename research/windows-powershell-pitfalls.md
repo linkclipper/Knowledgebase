@@ -27,3 +27,12 @@ Also: `2>$null` on a failing tag creation eats the error — suppressed failures
 ## 4. Repo creation order that worked
 
 `git init -b main` locally → seed files → commit → `gh repo create linkclipper/<name> --public --source . --push` → verify default branch with `gh repo view` (report says main when the only pushed branch is main — do not assume; check). Creating the repo first over the web and then cloning adds an origin whose default is `main` but no local tracking — the `--source . --push` path keeps local branch → default mapping explicit and avoids the empty-repo clone dance.
+
+## 5. CWD swaps with relative-looking paths
+
+`Set-Location "C:\Users\Neo\Videos\WebCollector-x"` fails when the folder actually lives under `C:\Users\Neo\Videos\Webapps\` — and in a loop, the failed `Set-Location` means **every following command runs in whatever was the previous CWD** (this created 5 empty repos in a 2026-11 batch instead of polluting, because push had no commits — luck, not safety). Rules: never assume a path prefix; resolve each folder's real path first (`$d = Get-Item "..."` and bail if $null); after any batch of repo creation, immediately verify contents (`gh api repos/<o>/<r>/contents`).
+
+## 6. `gh api` has no `--json` flag (that's `gh repo view`/`gh pr view`)
+
+`gh api <endpoint> --jq '.[].name'` works; `--json` belongs only to `gh`'s native subcommands. Also PowerShell mangles jq strings containing `,` inside `[..]` pipelines — keep jq simple, format in PowerShell.
+
