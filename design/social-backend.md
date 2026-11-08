@@ -14,11 +14,25 @@ The social phase is the risk pivot of this project. This doc states what it look
 
 ## Phase B: link-shares from a user-owned project
 
-- `linkclipper.github.io/b/<slug>` = static page, JS reads the user's Supabase project directly with the anon key carried *in the URL fragment* (never logged server-side, cache-bypasses CDN problem, and the slug+fragment model means the page is a pure static file).
-- Actually two candidate transports — decide at implementation:
+**Chosen transport for v0.4 (recorded 2026-11):** *publish nothing* — the board
+snapshot travels **inside the link fragment** (`linkclipper.github.io/b/#d=<base64url-JSON>`).
+
+- No server reads, no keys anywhere in the URL, no infra, works with zero sync
+  configured. The link is a pure capability: whoever holds it sees the snapshot.
+- Content shape shared: board name/color/description + item titles, links,
+  thumbnails, tags, sources. Notes, `readerText` caches and selections are
+  **never** included (enforced by `lib/shares.js`, decoded by the same rules on
+  the public page).
+- Static by design (re-share to refresh). Old links can't be revoked — the UI
+  copy says so plainly rather than pretending otherwise.
+- Phase B2 (live boards) reuses the same board shape but reads the user's own
+  project — still gated on the anon-key write risk below.
+
+For B2, two candidate transports — decide at implementation:
+
   1. **URL fragment key**: `…/b/<slug>#k=<anonKey>` — works project-owned; cons: ugly, no link previews.
   2. **User registers the share URL in an `index_names` row of a tiny LinkClipper-hosted lookup** that only maps slug→project URL (no content at rest) — tradeoff: we hold a mapping table; user trust moves up a notch.
-- Content shape shared: board + items, sanitized (no `readerText` unless author opts in).
+
 - RLS draft: `linkclipper/backend/supabase/schema.sql` § share.
 
 ## Phase C: hosted discovery
