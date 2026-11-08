@@ -27,6 +27,7 @@ Also: `2>$null` on a failing tag creation eats the error — suppressed failures
 ## 4. Repo creation order that worked
 
 `git init -b main` locally → seed files → commit → `gh repo create linkclipper/<name> --public --source . --push` → verify default branch with `gh repo view` (report says main when the only pushed branch is main — do not assume; check). Creating the repo first over the web and then cloning adds an origin whose default is `main` but no local tracking — the `--source . --push` path keeps local branch → default mapping explicit and avoids the empty-repo clone dance.
+**The `--push` step can silently no-op** (2026-11: two of five repos in one batch stayed empty while `gh repo create` printed its success URL). The URL printed is *creation* confirmation, **not content**. Only trust `gh api repos/<o>/<r>/contents` — listing files is the only proof a repo exists.
 
 ## 5. CWD swaps with relative-looking paths
 
